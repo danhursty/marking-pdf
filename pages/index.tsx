@@ -25,7 +25,7 @@ export default function Home() {
   }>({
     messages: [
       {
-        message: 'Hi, what would you like to learn about this document?',
+        message: 'Hey, I can help you mark students assessments. Please remember to check my anwers as I am still learning myself. Copy and paste the question and students answer below and I will do my best to help you.',
         type: 'apiMessage',
       },
     ],
@@ -120,12 +120,81 @@ export default function Home() {
     }
   };
 
+  async function handleOverallFeedback() {
+    setError(null);
+  
+    const question = "Overall Feedback"; // Replace with the appropriate query for overall feedback
+    setMessageState((state) => ({
+      ...state,
+      messages: [
+        ...state.messages,
+        {
+          type: 'userMessage',
+          message: question,
+        },
+      ],
+    }));
+  
+    setLoading(true);
+
+
+  try {
+    const response = await fetch('/api/feedback', { // Note the API endpoint has been changed
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        question,
+        history,
+      }),
+    });
+    const data = await response.json();
+
+    if (data.error) {
+      setError(data.error);
+    } else {
+      setMessageState((state) => ({
+        ...state,
+        messages: [
+          ...state.messages,
+          {
+            type: 'apiMessage',
+            message: data.text,
+            sourceDocs: data.sourceDocuments,
+          },
+        ],
+        history: [...state.history, [question, data.text]],
+      }));
+    }
+
+    setLoading(false);
+    messageListRef.current?.scrollTo(0, messageListRef.current.scrollHeight);
+  } catch (error) {
+    setLoading(false);
+    setError('An error occurred while fetching the data. Please try again.');
+    console.log('error', error);
+  }
+}
+
+
+
   return (
     <>
       <Layout>
+      <div>
+    <button
+      type="button"
+      onClick={handleOverallFeedback}
+      disabled={loading}
+      className={styles.generatebutton}
+        >
+          Overall Feedback
+        </button>
+      </div>
         <div className="mx-auto flex flex-col gap-4">
           <h1 className="text-2xl font-bold leading-[1.1] tracking-tighter text-center">
-            Chat With Your Docs
+            Marking Assistant
           </h1>
           <main className={styles.main}>
             <div className={styles.cloud}>
@@ -223,8 +292,8 @@ export default function Home() {
                     name="userInput"
                     placeholder={
                       loading
-                        ? 'Waiting for response...'
-                        : 'What is this legal case about?'
+                        ? "I'm just checking the workbooks for a response..."
+                        : 'Please paste the question and students answer:'
                     }
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
@@ -252,7 +321,9 @@ export default function Home() {
                   </button>
                 </form>
               </div>
+              
             </div>
+            
             {error && (
               <div className="border border-red-400 rounded-md p-4">
                 <p className="text-red-500">{error}</p>
@@ -260,11 +331,13 @@ export default function Home() {
             )}
           </main>
         </div>
+        
         <footer className="m-auto p-4">
-          <a href="https://twitter.com/mayowaoshin">
-            Powered by LangChainAI. Demo built by Mayo (Twitter: @mayowaoshin).
+          <a href="https://hurstcreative.uk">
+            Powered by LangChain. Built by Hurst Creative.
           </a>
         </footer>
+        
       </Layout>
     </>
   );
