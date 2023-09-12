@@ -1,4 +1,4 @@
-# GPT-4 & EduCheck - Validate Student Answers with PDF Files
+# GPT-4 - Validate Student Answers with PDF Files
 
 Utilise the GPT-4 API to build a tool for automatically checking students' answers against multiple large PDF files. This project also includes an overall feedback button for quick and easy evaluation.
 
